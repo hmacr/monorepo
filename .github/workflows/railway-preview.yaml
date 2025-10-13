@@ -23,7 +23,7 @@ jobs:
       - name: Deploy Web
         run: railway up --service ${{ vars.RAILWAY_WEB_SERVICE_ID }} --environment pr-${{ github.event.pull_request.number }}
       - name: Deploy Docs
-        run: railway up --service ${{ var.RAILWAY_DOCS_SERVICE_ID }} --environment pr-${{ github.event.pull_request.number }}
+        run: railway up --service ${{ vars.RAILWAY_DOCS_SERVICE_ID }} --environment pr-${{ github.event.pull_request.number }}
 
   pr_updated:
     if: github.event.action == 'synchronize' && github.event.pull_request.draft == false
@@ -37,7 +37,7 @@ jobs:
       - name: Deploy Web
         run: railway up --service ${{ vars.RAILWAY_WEB_SERVICE_ID }} --environment pr-${{ github.event.pull_request.number }}
       - name: Deploy Docs
-        run: railway up --service ${{ var.RAILWAY_DOCS_SERVICE_ID }} --environment pr-${{ github.event.pull_request.number }}
+        run: railway up --service ${{ vars.RAILWAY_DOCS_SERVICE_ID }} --environment pr-${{ github.event.pull_request.number }}
 
   pr_closed:
     if: github.event.action == 'closed' && github.event.pull_request.draft == false
