@@ -9,6 +9,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: railway-prod-env-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_ACCOUNT_TOKEN }}
 
