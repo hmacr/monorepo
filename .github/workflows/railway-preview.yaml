@@ -1,38 +1,42 @@
-name: Railway Preview Environments
+# NOTE
+# if you have 2fa on your account, the pr close part of the action will hang (due to 2fa not being supported non-interactively)
+
+name: Manage PR environments (Railway)
 
 on:
   pull_request:
-    types: [opened, synchronize, ready_for_review, closed]
-    branches: [main]
+    types: [opened, closed]
 
-concurrency:
-  group: railway-pr-envs-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+env:
+  RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_ACCOUNT_TOKEN }}
+  DUPLICATE_FROM_ID: "production"
+  LINK_PROJECT_ID: "01790802-1289-4cc6-a8b2-02d4d524fa04"
+  WEB_SERVICE_ID: "fc0775bc-9d5d-4818-9d27-88a601617d92"
+  DOCS_SERVICE_ID: "c9ebf1eb-520b-4a6e-a338-65018f5e1119"
 
 jobs:
-  deploy:
-    if: github.event.action != 'closed' && github.event.pull_request.draft == false
+  pr_opened:
+    if: github.event.action == 'opened'
     runs-on: ubuntu-latest
+    container: ghcr.io/railwayapp/cli:latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Link to project
+        run: railway link --project ${{ env.LINK_PROJECT_ID }} --environment ${{ env.DUPLICATE_FROM_ID }}
+      - name: Create Railway Environment for PR
+        run: railway environment new pr-${{ github.event.pull_request.number }} --copy ${{ env.DUPLICATE_FROM_ID }}
+      - name: Deploy Web
+        run: railway up --service ${{ env.WEB_SERVICE_ID }} --environment pr-${{ github.event.pull_request.number }}
+      - name: Deploy Docs
+        run: railway up --service ${{ env.DOCS_SERVICE_ID }} --environment pr-${{ github.event.pull_request.number }}
 
-      - name: Create Railway preview environment
-        uses: hmacr/railway-preview-environment@v1.0.7
-        with:
-          railway_api_token: ${{ secrets.RAILWAY_API_TOKEN }}
-          project_id: ${{ secrets.RAILWAY_PROJECT_ID }}
-          environment_name: 'production'
-          preview_environment_name: 'pr-${{ github.event.pull_request.number }}'
-          branch_name: ${{ github.head_ref }}
-
-  cleanup:
-    if: github.event.action == 'closed' && github.event.pull_request.draft == false
+  pr_closed:
+    if: github.event.action == 'closed'
     runs-on: ubuntu-latest
+    container: ghcr.io/railwayapp/cli:latest
     steps:
-      - name: Delete Railway preview environment
-        uses: hmacr/railway-preview-environment@v1.0.7
-        with:
-          railway_api_token: ${{ secrets.RAILWAY_API_TOKEN }}
-          project_id: ${{ secrets.RAILWAY_PROJECT_ID }}
-          preview_environment_name: 'pr-${{ github.event.pull_request.number }}'
+      - name: Link to project
+        run: railway link --project ${{ env.LINK_PROJECT_ID }} --environment ${{ env.DUPLICATE_FROM_ID }}
+      - name: Delete Railway Environment for PR
+        run: railway environment delete pr-${{ github.event.pull_request.number }} || true
