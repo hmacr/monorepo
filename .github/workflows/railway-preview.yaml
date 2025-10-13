@@ -13,8 +13,8 @@ env:
   RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_ACCOUNT_TOKEN }}
 
 jobs:
-  pr_opened:
-    if: (github.event.action == 'opened' || github.event.action == 'ready_for_review') && github.event.pull_request.draft == false
+  deploy:
+    if: github.event.action != 'closed' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     container: ghcr.io/railwayapp/cli:latest
     steps:
@@ -23,27 +23,14 @@ jobs:
       - name: Link to project
         run: railway link --project ${{ vars.RAILWAY_PROJECT_ID }} --environment ${{ vars.RAILWAY_PROD_ENVIRONMENT }}
       - name: Create Railway Environment for PR
+        if: github.event.action == 'opened' || github.event.action == 'ready_for_review'
         run: railway environment new pr-${{ github.event.pull_request.number }} --copy ${{ vars.RAILWAY_PROD_ENVIRONMENT }}
       - name: Deploy Web
         run: railway up --service ${{ vars.RAILWAY_WEB_SERVICE_ID }} --environment pr-${{ github.event.pull_request.number }}
       - name: Deploy Docs
         run: railway up --service ${{ vars.RAILWAY_DOCS_SERVICE_ID }} --environment pr-${{ github.event.pull_request.number }}
 
-  pr_updated:
-    if: github.event.action == 'synchronize' && github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
-    container: ghcr.io/railwayapp/cli:latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Link to project
-        run: railway link --project ${{ vars.RAILWAY_PROJECT_ID }} --environment ${{ vars.RAILWAY_PROD_ENVIRONMENT }}
-      - name: Deploy Web
-        run: railway up --service ${{ vars.RAILWAY_WEB_SERVICE_ID }} --environment pr-${{ github.event.pull_request.number }}
-      - name: Deploy Docs
-        run: railway up --service ${{ vars.RAILWAY_DOCS_SERVICE_ID }} --environment pr-${{ github.event.pull_request.number }}
-
-  pr_closed:
+  cleanup:
     if: github.event.action == 'closed' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     container: ghcr.io/railwayapp/cli:latest
