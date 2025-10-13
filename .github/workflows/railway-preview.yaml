@@ -24,7 +24,7 @@ jobs:
         run: railway link --project ${{ vars.RAILWAY_PROJECT_ID }} --environment ${{ vars.RAILWAY_PROD_ENVIRONMENT }}
       - name: Create Railway Environment for PR
         if: github.event.action == 'opened' || github.event.action == 'ready_for_review'
-        run: railway environment new pr-${{ github.event.pull_request.number }} --copy ${{ vars.RAILWAY_PROD_ENVIRONMENT }}
+        run: railway environment new pr-${{ github.event.pull_request.number }} --copy ${{ vars.RAILWAY_PROD_ENVIRONMENT }} || true
       - name: Deploy Web
         run: railway up --service ${{ vars.RAILWAY_WEB_SERVICE_ID }} --environment pr-${{ github.event.pull_request.number }}
       - name: Deploy Docs
