@@ -8,7 +8,7 @@ FROM base AS builder
 WORKDIR /turborepo
 COPY . .
 
-RUN bunx turbo prune web --docker
+RUN bunx turbo prune @hmacr-monorepo/web --docker
 
 FROM base AS installer
 
@@ -18,7 +18,7 @@ COPY --from=builder /turborepo/out/json/ .
 RUN bun install
 
 COPY --from=builder /turborepo/out/full/ .
-RUN bunx turbo run build --filter=web
+RUN bunx turbo run build --filter=@hmacr-monorepo/web
 
 WORKDIR /turborepo/apps/web
 
