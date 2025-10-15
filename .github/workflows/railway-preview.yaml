@@ -1,4 +1,4 @@
-name: Railway Preview Environments
+name: Railway Preview Environment
 
 on:
   pull_request:
@@ -11,15 +11,20 @@ concurrency:
 
 env:
   RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_ACCOUNT_TOKEN }}
+  RAILWAY_PROJECT_ID: '01790802-1289-4cc6-a8b2-02d4d524fa04'
+  RAILWAY_WEB_SERVICE_ID: 'fc0775bc-9d5d-4818-9d27-88a601617d92'
+  RAILWAY_DOCS_SERVICE_ID: 'c9ebf1eb-520b-4a6e-a338-65018f5e1119'
   NEON_PROJECT_ID: 'little-bird-62884212'
 
 jobs:
-  create-neon-branch:
+  deploy:
     if: github.event.action != 'closed' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    outputs:
-      db_url: ${{ steps.create-neon-branch.outputs.db_url }}
+    container: ghcr.io/railwayapp/cli:latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
       - name: Create Neon Branch
         id: create-neon-branch
         uses: neondatabase/create-branch-action@v6
@@ -27,25 +32,19 @@ jobs:
           project_id: ${{ env.NEON_PROJECT_ID }}
           branch_name: pr-${{ github.event.pull_request.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
-
-  deploy-railway-environment:
-    needs: create-neon-branch
-    if: github.event.action != 'closed' && github.event.pull_request.draft == false
-    runs-on: ubuntu-latest
-    container: ghcr.io/railwayapp/cli:latest
-    strategy:
-      matrix:
-        service: ['fc0775bc-9d5d-4818-9d27-88a601617d92', 'c9ebf1eb-520b-4a6e-a338-65018f5e1119']
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      
       - name: Link to project
-        run: railway link --project ${{ vars.RAILWAY_PROJECT_ID }} --environment ${{ vars.RAILWAY_PROD_ENVIRONMENT }}
+        run: railway link --project ${{ env.RAILWAY_PROJECT_ID }} --environment ${{ env.RAILWAY_PROD_ENVIRONMENT }}
+      
       - name: Create Railway Environment for PR
         if: github.event.action == 'opened' || github.event.action == 'ready_for_review'
-        run: railway environment new pr-${{ github.event.pull_request.number }} --copy ${{ vars.RAILWAY_PROD_ENVIRONMENT }} --service-variable ${{ matrix.service }} DB_URL=${{ needs.create-neon-branch.outputs.db_url }} || true
-      - name: Deploy ${{ matrix.service }}
-        run: railway up --service ${{ matrix.service }} --environment pr-${{ github.event.pull_request.number }}
+        run: railway environment new pr-${{ github.event.pull_request.number }} --copy ${{ env.RAILWAY_PROD_ENVIRONMENT }} --service-variable ${{ env.RAILWAY_WEB_SERVICE_ID }} DB_URL=${{ steps.create-neon-branch.outputs.db_url }}
+      
+      - name: Deploy Web
+        run: railway up --service ${{ env.RAILWAY_WEB_SERVICE_ID }} --environment pr-${{ github.event.pull_request.number }}
+      
+      - name: Deploy Docs
+        run: railway up --service ${{ env.RAILWAY_DOCS_SERVICE_ID }} --environment pr-${{ github.event.pull_request.number }}
 
   cleanup-neon-branch:
     if: github.event.action == 'closed' && github.event.pull_request.draft == false
@@ -65,5 +64,6 @@ jobs:
     steps:
       - name: Link to project
         run: railway link --project ${{ vars.RAILWAY_PROJECT_ID }} --environment ${{ vars.RAILWAY_PROD_ENVIRONMENT }}
+      
       - name: Delete Railway Environment for PR
         run: railway environment delete pr-${{ github.event.pull_request.number }} -y || true
