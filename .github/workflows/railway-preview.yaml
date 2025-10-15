@@ -34,16 +34,15 @@ jobs:
       matrix:
         service: [${{ vars.RAILWAY_WEB_SERVICE_ID }}, ${{ vars.RAILWAY_DOCS_SERVICE_ID }}]
     steps:
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v4
-        - name: Link to project
-          run: railway link --project ${{ vars.RAILWAY_PROJECT_ID }} --environment ${{ vars.RAILWAY_PROD_ENVIRONMENT }}
-        - name: Create Railway Environment for PR
-          if: github.event.action == 'opened' || github.event.action == 'ready_for_review'
-          run: railway environment new pr-${{ github.event.pull_request.number }} --copy ${{ vars.RAILWAY_PROD_ENVIRONMENT }}
-        - name: Deploy ${{ matrix.service }}
-          run: railway up --service ${{ matrix.service }} --environment pr-${{ github.event.pull_request.number }}
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Link to project
+        run: railway link --project ${{ vars.RAILWAY_PROJECT_ID }} --environment ${{ vars.RAILWAY_PROD_ENVIRONMENT }}
+      - name: Create Railway Environment for PR
+        if: github.event.action == 'opened' || github.event.action == 'ready_for_review'
+        run: railway environment new pr-${{ github.event.pull_request.number }} --copy ${{ vars.RAILWAY_PROD_ENVIRONMENT }}
+      - name: Deploy ${{ matrix.service }}
+        run: railway up --service ${{ matrix.service }} --environment pr-${{ github.event.pull_request.number }}
 
   cleanup-neon-branch:
     if: github.event.action == 'closed' && github.event.pull_request.draft == false
