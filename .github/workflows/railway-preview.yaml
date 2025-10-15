@@ -11,6 +11,8 @@ concurrency:
 
 env:
   RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_ACCOUNT_TOKEN }}
+  RAILWAY_WEB_SERVICE_ID: 'fc0775bc-9d5d-4818-9d27-88a601617d92'
+  RAILWAY_DOCS_SERVICE_ID: 'c9ebf1eb-520b-4a6e-a338-65018f5e1119'
   NEON_PROJECT_ID: 'little-bird-62884212'
 
 jobs:
@@ -32,7 +34,7 @@ jobs:
     container: ghcr.io/railwayapp/cli:latest
     strategy:
       matrix:
-        service: [${{ vars.RAILWAY_WEB_SERVICE_ID }}, ${{ vars.RAILWAY_DOCS_SERVICE_ID }}]
+        service: ['fc0775bc-9d5d-4818-9d27-88a601617d92', 'c9ebf1eb-520b-4a6e-a338-65018f5e1119']
     steps:
       - name: Checkout
         uses: actions/checkout@v4
