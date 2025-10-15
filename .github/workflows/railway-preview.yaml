@@ -49,7 +49,6 @@ jobs:
   cleanup-neon-branch:
     if: github.event.action == 'closed' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    container: ubuntu-latest
     steps:
       - name: Delete Neon Branch
         uses: neondatabase/delete-branch-action@v3
