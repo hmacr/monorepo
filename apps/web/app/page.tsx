@@ -37,6 +37,7 @@ export default function Home() {
           </li>
           <li>Save and see your changes instantly.</li>
           <li>Edit 12</li>
+          <li>{process.env.NEXT_PUBLIC_DATABASE_URL}</li>
         </ol>
 
         <div className={styles.ctas}>
