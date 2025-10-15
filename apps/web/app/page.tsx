@@ -36,6 +36,7 @@ export default function Home() {
             Get started by editing <code>apps/web/app/page.tsx</code>
           </li>
           <li>Save and see your changes instantly.</li>
+          <li>Edit 12</li>
           <li>{process.env.NEXT_PUBLIC_DATABASE_URL}</li>
         </ol>
 
