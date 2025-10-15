@@ -11,6 +11,7 @@ concurrency:
 
 env:
   RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_ACCOUNT_TOKEN }}
+  NEON_PROJECT_ID: 'little-bird-62884212'
 
 jobs:
   deploy:
@@ -20,6 +21,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Create Neon Branch
+        id: create-neon-branch
+        uses: neondatabase/create-branch-action@v6
+        with:
+          project_id: ${{ env.NEON_PROJECT_ID }}
+          branch_name: pr-${{ github.event.pull_request.number }}
+          api_key: ${{ secrets.NEON_API_KEY }}
       - name: Link to project
         run: railway link --project ${{ vars.RAILWAY_PROJECT_ID }} --environment ${{ vars.RAILWAY_PROD_ENVIRONMENT }}
       - name: Create Railway Environment for PR
@@ -37,5 +45,11 @@ jobs:
     steps:
       - name: Link to project
         run: railway link --project ${{ vars.RAILWAY_PROJECT_ID }} --environment ${{ vars.RAILWAY_PROD_ENVIRONMENT }}
+      - name: Delete Neon Branch
+        uses: neondatabase/delete-branch-action@v3
+        with:
+          project_id: ${{ env.NEON_PROJECT_ID }}
+          branch: pr-${{ github.event.pull_request.number }}
+          api_key: ${{ secrets.NEON_API_KEY }}
       - name: Delete Railway Environment for PR
         run: railway environment delete pr-${{ github.event.pull_request.number }} -y || true
