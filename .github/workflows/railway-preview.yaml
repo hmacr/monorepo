@@ -17,6 +17,8 @@ jobs:
   create-neon-branch:
     if: github.event.action != 'closed' && github.event.pull_request.draft == false
     runs-on: ubuntu-latest
+    outputs:
+      db_url: ${{ steps.create-neon-branch.outputs.db_url }}
     steps:
       - name: Create Neon Branch
         id: create-neon-branch
@@ -41,7 +43,7 @@ jobs:
         run: railway link --project ${{ vars.RAILWAY_PROJECT_ID }} --environment ${{ vars.RAILWAY_PROD_ENVIRONMENT }}
       - name: Create Railway Environment for PR
         if: github.event.action == 'opened' || github.event.action == 'ready_for_review'
-        run: railway environment new pr-${{ github.event.pull_request.number }} --copy ${{ vars.RAILWAY_PROD_ENVIRONMENT }} || true
+        run: railway environment new pr-${{ github.event.pull_request.number }} --copy ${{ vars.RAILWAY_PROD_ENVIRONMENT }} --service-variable ${{ matrix.service }} DB_URL=${{ needs.create-neon-branch.outputs.db_url }} || true
       - name: Deploy ${{ matrix.service }}
         run: railway up --service ${{ matrix.service }} --environment pr-${{ github.event.pull_request.number }}
 
