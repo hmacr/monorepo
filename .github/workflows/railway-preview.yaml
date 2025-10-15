@@ -51,5 +51,6 @@ jobs:
           project_id: ${{ env.NEON_PROJECT_ID }}
           branch: pr-${{ github.event.pull_request.number }}
           api_key: ${{ secrets.NEON_API_KEY }}
+        shell: bash
       - name: Delete Railway Environment for PR
         run: railway environment delete pr-${{ github.event.pull_request.number }} -y || true
