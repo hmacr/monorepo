@@ -39,7 +39,7 @@ jobs:
       
       - name: Create Railway Environment for PR
         if: github.event.action == 'opened' || github.event.action == 'ready_for_review'
-        run: railway environment new pr-${{ github.event.pull_request.number }} --copy ${{ env.RAILWAY_PROD_ENVIRONMENT }} --service-variable ${{ env.RAILWAY_WEB_SERVICE_ID }} DB_URL=${{ steps.create-neon-branch.outputs.db_url }}
+        run: railway environment new pr-${{ github.event.pull_request.number }} --copy ${{ env.RAILWAY_PROD_ENVIRONMENT }} --service-variable ${{ env.RAILWAY_WEB_SERVICE_ID }} NEXT_PUBLIC_DATABASE_HOST=${{ steps.create-neon-branch.outputs.db_host }} --service-variable ${{ env.RAILWAY_WEB_SERVICE_ID }} NEXT_PUBLIC_DATABASE_PASSWORD=${{ steps.create-neon-branch.outputs.password }}
       
       - name: Deploy Web
         run: railway up --service ${{ env.RAILWAY_WEB_SERVICE_ID }} --environment pr-${{ github.event.pull_request.number }}
